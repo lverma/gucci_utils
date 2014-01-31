@@ -5,45 +5,39 @@ namespace :git do
   class GitException < StandardError; end
   @basedir = File.join(ENV['HOME'], 'Sites')
   
-  desc 'Set base directory'
+  desc 'Set base directory: i.e rake git:basedir basedir=/my/base/dir'
   task :basedir do
     @basedir ||= ENV['basedir']
     puts @basedir
   end
   
-  desc 'Choose one of the available GIT repositiories'
-  task :repos => :basedir do
-    repo = ENV['repo']
-    default_repos = %w[oro chime]
-    default_repos << repo if repo
-    default_repos = Hash[(0...default_repos.size).zip default_repos]
-    choose(:msg => 'Choose repository', :choices => default_repos, :multi => false) do |repo|
-      repo = default_repos[repo.to_i]
-      puts 'Using ' + repo.to_s.bold.magenta + ' repo...'.normal
-      @repo_path = File.join(@basedir, repo.to_s)
-    end
+  desc 'Provide the GIT repository: i.e. rake git:repos'
+  task :repo => :basedir do
+    repo = ask 'Provide a valid GIT repository:'.bold.grey
+    puts "Using #{repo} repo...".bold.yellow
+    @repo_path = File.join(@basedir, repo.to_s)
   end
   
-  desc 'Load the branches from an external file and/or by spcifing a specific one: i.e. rake git:branches branches=aggregate branch=add_this_one'
+  desc 'Load the branches from an external file and/or by spcifing a specific one: i.e. rake git:branches file=aggregate branch=add_this_one'
   task :branches => :basedir do
     @branches = []
-    branches = ENV['branches']
-    if branches
-      branches_file = File.join(@basedir, branches)
+    file = ENV['file']
+    if file
+      branches_file = File.join(@basedir, file)
       print_spacer 'Loading branches file...'.bold
       @branches += File.foreach(branches_file).map(&:strip)
     end
     branch = ENV['branch']
     @branches << branch if branch
     raise GitException, "No branches loaded!".bold.red if @branches.empty?
-    puts "Successfully loaded " + @branches.count.to_s.bold.yellow + " branch/es:".normal
+    puts "Successfully loaded #{@branches.count} branch/es:".bold.yellow
     @branches.each { |b| puts b }
   end
   
   desc 'Aligns specified branch with master'
-  task :align => :repos do
+  task :align => :repo do
     branch = ENV['branch'] || 'master'
-    print_spacer "Aligning branch: #{branch.bold}"
+    print_spacer "Aligning branch: #{branch}".bold.magenta
     Dir.chdir @repo_path do
       puts "Checking-out the branch..."
       %x[git checkout #{branch}]
@@ -52,14 +46,14 @@ namespace :git do
     end
   end
   
-  desc 'Remove the specified branch/branches locally and from origin: i.e. rake git:remove branches=removing'
-  task :remove => [:repos, :branches] do |t, args|
+  desc 'Remove the specified branch/branches locally and from origin: i.e. rake git:remove file=remove'
+  task :remove => [:repo, :branches] do |t, args|
     Dir.chdir @repo_path do
       puts "Checking-out to master..."
       %x[git checkout master]
       @branches.each do |branch|
-        raise "Cannot remove master!".bold.red if branch == 'master'
-        print_spacer "Removing branch: #{branch.bold.yellow}"
+        raise GitException, "Cannot remove master!".bold.red if branch == 'master'
+        print_spacer "Removing branch: #{branch}".bold.magenta
         confirm('Remove local branch') do
           puts 'Removing local branch...'
           %x[git branch -D #{branch}]
@@ -72,12 +66,12 @@ namespace :git do
      end
   end
   
-  desc 'Rebase the specified branches with master with options: i.e rake git:rebase branches=rebasing options=i'
+  desc 'Rebase the specified branches with master with options: i.e rake git:rebase file=rebase options=i'
   task :rebase => [:align, :branches] do
     options = ENV['options'] ? "-#{ENV['options']}" : ""
     Dir.chdir @repo_path do
       @branches.each do |branch|
-        print_spacer "Working on branch: #{branch.bold}"
+        print_spacer "Rebasing branch: #{branch}".bold.magenta
         puts 'Checking-out...'
         %x[git checkout #{branch}]
         puts "Pulling it..."
@@ -99,15 +93,14 @@ namespace :git do
     end
   end
   
-  desc 'Aggregate specified branches into a single one: i.e. rake git:aggregate branches=aggregating'
+  desc 'Aggregate specified branches into a single one: i.e. rake git:aggregate file=aggregate'
   task :aggregate => [:align, :branches] do
     release = Time.new.strftime("rb_%Y-%m-%d")
     temp = "temp_#{release}"
     Dir.chdir @repo_path do
-      print_spacer "Creating release branch: #{release.bold}"
       %x[git branch #{release}]
       @branches.each do |branch|
-        print_spacer "Working on branch: #{branch.bold}"
+        print_spacer "Aggregating branch: #{branch}".bold.magenta
         puts 'Create temp branch...'
         %x[git checkout -b #{temp} origin/#{branch} --no-track]
         puts 'Rebasing with master...'
@@ -122,6 +115,7 @@ namespace :git do
         %x[git branch -d #{temp}]
       end      
     end
+    print_spacer "Release branch created: #{release}".bold.yellow
   end
     
 end

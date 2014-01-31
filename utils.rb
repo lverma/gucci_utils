@@ -27,11 +27,11 @@ class String
 end
 
 module Utils
-  @astrerisk_len = 90
+  @@astrerisk_len = 90
   
   def print_spacer(s)
     puts
-    puts ('*' * @astrerisk_len).grey.bold
+    puts ('*' * @@astrerisk_len).grey.bold
     puts s.green
   end
   
@@ -42,7 +42,7 @@ module Utils
   end
   
   def ask message
-    print message
+    print message.bold.grey
     STDIN.gets.chomp
   end
   
