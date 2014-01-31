@@ -1,4 +1,4 @@
 gucci_utils
 ===========
 
-Itility libraries related to the GUcci.com project
+Utility libraries related to the GUcci.com project.
