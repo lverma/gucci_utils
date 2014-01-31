@@ -7,8 +7,7 @@ namespace :git do
   
   desc 'Set base directory: i.e rake git:basedir basedir=/my/base/dir'
   task :basedir do
-    @basedir ||= ENV['basedir']
-    puts @basedir
+    @basedir = ENV['basedir']
   end
   
   desc 'Provide the GIT repository: i.e. rake git:repos'
@@ -34,7 +33,7 @@ namespace :git do
     @branches.each { |b| puts b }
   end
   
-  desc 'Aligns specified branch with master'
+  desc 'Aligns specified branch with origin: i.e. rake git:align branch=my_branch'
   task :align => :repo do
     branch = ENV['branch'] || 'master'
     print_spacer "Aligning branch: #{branch}".bold.magenta
