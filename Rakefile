@@ -3,26 +3,29 @@ include Utils
 
 namespace :git do
   class GitException < StandardError; end
-  @basedir = File.join(ENV['HOME'], 'Sites')
+  PROJ_DIR = File.join(ENV['HOME'], 'Sites')
+  FILE_DIR = File.join(ENV['HOME'], 'Sites')
   
   desc 'Set base directory: i.e rake git:basedir basedir=/my/base/dir'
-  task :basedir do
-    @basedir = ENV['basedir']
+  task :basedirs do
+    @projdir = ENV['projdir'] || PROJ_DIR
+    @filedir = ENV['filedir'] || FILE_DIR
   end
   
   desc 'Provide the GIT repository: i.e. rake git:repos'
-  task :repo => :basedir do
+  task :repo => :basedirs do
     repo = ask 'Provide a valid GIT repository:'.bold.grey
     puts "Using #{repo} repo...".bold.yellow
-    @repo_path = File.join(@basedir, repo.to_s)
+    @repo_path = File.join(@projdir, repo.to_s)
   end
   
   desc 'Load the branches from an external file and/or by spcifing a specific one: i.e. rake git:branches file=aggregate branch=add_this_one'
-  task :branches => :basedir do
+  task :branches => :basedirs do
     @branches = []
     file = ENV['file']
     if file
-      branches_file = File.join(@basedir, file)
+      puts "*** FILEDIR: #{@filedir}"
+      branches_file = File.join(@filedir, file)
       print_spacer 'Loading branches file...'.bold
       @branches += File.foreach(branches_file).map(&:strip)
     end
