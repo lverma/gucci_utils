@@ -24,7 +24,6 @@ namespace :git do
     @branches = []
     file = ENV['file']
     if file
-      puts "*** FILEDIR: #{@filedir}"
       branches_file = File.join(@filedir, file)
       print_spacer 'Loading branches file...'.bold
       @branches += File.foreach(branches_file).map(&:strip)
