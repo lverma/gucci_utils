@@ -6,7 +6,7 @@ namespace :git do
   PROJ_DIR = File.join(ENV['HOME'], 'Sites')
   FILE_DIR = File.join(ENV['HOME'], 'Sites')
   
-  desc 'Set base directory: i.e rake git:basedir basedir=/my/base/dir'
+  desc 'Set base directory: i.e rake git:basedir projdir=/my/proj/dir filedir=/my/file/dir'
   task :basedirs do
     @projdir = ENV['projdir'] || PROJ_DIR
     @filedir = ENV['filedir'] || FILE_DIR
