@@ -25,13 +25,13 @@ namespace :git do
     file = ENV['file']
     if file
       branches_file = File.join(@filedir, file)
-      print_spacer 'Loading branches file...'.bold
+      print_spacer 'Loading branches file...'.bold.yellow
       @branches += File.foreach(branches_file).map(&:strip)
     end
     branch = ENV['branch']
     @branches << branch if branch
     raise GitException, "No branches loaded!".bold.red if @branches.empty?
-    puts "Successfully loaded #{@branches.count} branch/es:".bold.yellow
+    puts "Successfully loaded #{@branches.count} branch/es:".bold.green
     @branches.each { |b| puts b }
   end
   
@@ -72,6 +72,7 @@ namespace :git do
     options = ENV['options'] ? "-#{ENV['options']}" : ""
     Dir.chdir @repo_path do
       @branches.each do |branch|
+        ack = true
         print_spacer "Rebasing branch: #{branch}".bold.magenta
         puts 'Checking-out...'
         %x[git checkout #{branch}]
@@ -80,7 +81,8 @@ namespace :git do
         puts 'Rebasing with master...'
         %x[git rebase #{options} origin/master]
         if %w(rebase-merge rebase-apply).any? { |name| File.exists?(File.join(@repo_path, '.git', name)) }
-          puts 'Halting unfinished rebase...'.red.bold
+          ack = false
+          puts 'Halting unfinished rebase...'.bold.red
           %x[git rebase --abort]
         else
           puts 'Pushing to origin...'
@@ -90,6 +92,7 @@ namespace :git do
         %x[git checkout master]
         puts 'Remove local branch...'
         %x[git branch -D #{branch}]
+        puts 'Rebased successfully!'.bold.green if ack
       end
     end
   end
