@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'utils.rb')
+Dir[File.join(File.dirname(__FILE__), 'lib', '*.rb')].each {|file| require file }
 include Utils
 
 namespace :git do
@@ -120,6 +120,15 @@ namespace :git do
       end      
     end
     print_spacer "Release branch created: #{release}".bold.yellow
+  end    
+end
+
+namespace :publishing do
+  desc 'Create a SQL to output publishing jobs on QA server by starting date'
+  task :qa_sql do
+    print_spacer "Generate SQL for QA publishing jobs".bold.magenta
+    starting_date = ENV['date']
+    SqlJobsAnalyzer::exec(ENV['date'])
+    print_spacer "SQL file created: #{File.join(File.dirname(__FILE__), SqlJobsAnalyzer::SQL_FILE)}".bold.yellow
   end
-    
 end
