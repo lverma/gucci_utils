@@ -126,9 +126,21 @@ end
 namespace :publishing do
   desc 'Create a SQL to output publishing jobs on QA server by starting date'
   task :qa_sql do
-    print_spacer "Generate SQL for QA publishing jobs".bold.magenta
+    print_spacer "Generating SQL for QA publishing jobs...".bold.magenta
     starting_date = ENV['date']
     SqlJobsAnalyzer::exec(ENV['date'])
     print_spacer "SQL file created: #{File.join(File.dirname(__FILE__), SqlJobsAnalyzer::SQL_FILE)}".bold.yellow
+  end
+  
+  desc 'Purge all of the published contents'
+  task :purge do
+    projdir = ENV['projdir'] || File.join(ENV['HOME'], 'Sites', 'oro')
+    confirm('Purge all the published contents') do
+      print_spacer "Removing published contents...".bold.magenta
+      Purger::exec!(projdir) do |site|
+        puts "Removing #{site.upcase} folder..."
+      end
+      print_spacer "Removed #{Purger::dirs_count} published directories!".bold.yellow
+    end
   end
 end
