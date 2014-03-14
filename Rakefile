@@ -62,12 +62,6 @@ namespace :publishing do
   desc 'Purge all of the published contents'
   task :purge do
     projdir = ENV['projdir'] || File.join(ENV['HOME'], 'Sites', 'oro')
-    confirm('Purge all the published contents') do
-      print_spacer "Removing published contents...".bold.magenta
-      Purger::exec!(projdir) do |site|
-        puts "Removing #{site.upcase} folder..."
-      end
-      print_spacer "Removed #{Purger::dirs_count} published directories!".bold.yellow
-    end
+    Purger::exec(projdir)
   end
 end
